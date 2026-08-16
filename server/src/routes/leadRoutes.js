@@ -1,8 +1,22 @@
-import { Router } from 'express'
-import { createLead, listLeads } from '../controllers/leadController.js'
-const router = Router()
+const express = require('express');
+const router = express.Router();
+const {
+  createLead,
+  getLeads,
+  getLeadById,
+  updateLead,
+  deleteLead
+} = require('../controllers/leadController');
+const { protect } = require('../middleware/authMiddleware');
+const { leadSubmissionLimiter } = require('../middleware/rateLimiter');
 
-router.post('/', createLead)
-router.get('/', listLeads)
+// Public project idea submission endpoint
+router.post('/', leadSubmissionLimiter, createLead);
 
-export default router
+// Admin CRM endpoints
+router.get('/', protect, getLeads);
+router.get('/:id', protect, getLeadById);
+router.patch('/:id', protect, updateLead);
+router.delete('/:id', protect, deleteLead);
+
+module.exports = router;
