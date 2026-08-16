@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Rocket, Menu, X, Code2, Sparkles, ChevronRight } from 'lucide-react';
+import { Rocket, Menu, X, Code2, Sparkles, ChevronRight, Calendar } from 'lucide-react';
 
-const Navbar = ({ onOpenLeadModal }) => {
+const Navbar = ({ onOpenLeadModal, onOpenBooking }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -10,6 +10,7 @@ const Navbar = ({ onOpenLeadModal }) => {
     { label: 'Home', path: '/' },
     { label: 'Services', path: '/services' },
     { label: 'Projects', path: '/projects' },
+    { label: 'Estimator', path: '/estimator' },
     { label: 'About', path: '/about' },
     { label: 'Contact', path: '/contact' }
   ];
@@ -54,8 +55,17 @@ const Navbar = ({ onOpenLeadModal }) => {
           ))}
         </nav>
 
-        {/* Primary Call to Action Button */}
-        <div className="hidden md:flex items-center gap-3">
+        {/* Primary CTAs */}
+        <div className="hidden md:flex items-center gap-2">
+          {/* Book a Call — secondary ghost button */}
+          <button
+            onClick={onOpenBooking}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-semibold text-sm text-slate-300 border border-slate-700 hover:border-cyan-500/50 hover:text-cyan-400 hover:bg-cyan-500/5 transition-all duration-200"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Book a Call</span>
+          </button>
+          {/* Start Your Project — primary */}
           <button
             onClick={onOpenLeadModal}
             className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/35 transition-all duration-300 active:scale-95 group"
@@ -95,12 +105,16 @@ const Navbar = ({ onOpenLeadModal }) => {
               {item.label}
             </Link>
           ))}
-          <div className="pt-2">
+          <div className="pt-2 flex flex-col gap-2">
             <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenLeadModal();
-              }}
+              onClick={() => { setMobileMenuOpen(false); onOpenBooking(); }}
+              className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-slate-300 border border-slate-700 hover:border-cyan-500/40 hover:text-cyan-400 transition-all"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>Book a Free Discovery Call</span>
+            </button>
+            <button
+              onClick={() => { setMobileMenuOpen(false); onOpenLeadModal(); }}
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-cyan-500 to-violet-600 shadow-lg shadow-cyan-500/20"
             >
               <Rocket className="w-4 h-4" />

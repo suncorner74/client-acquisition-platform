@@ -5,7 +5,8 @@ const {
   getLeads,
   getLeadById,
   updateLead,
-  deleteLead
+  deleteLead,
+  aiQualifyLead
 } = require('../controllers/leadController');
 const { protect } = require('../middleware/authMiddleware');
 const { leadSubmissionLimiter } = require('../middleware/rateLimiter');
@@ -18,5 +19,7 @@ router.get('/', protect, getLeads);
 router.get('/:id', protect, getLeadById);
 router.patch('/:id', protect, updateLead);
 router.delete('/:id', protect, deleteLead);
+router.post('/:id/ai-qualify', protect, aiQualifyLead);
 
 module.exports = router;
+

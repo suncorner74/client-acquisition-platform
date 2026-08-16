@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Code2, Github, Linkedin, Mail, ArrowUpRight, ShieldCheck, Cpu } from 'lucide-react';
+import { Code2, Github, Linkedin, Mail, ArrowUpRight, ShieldCheck, Cpu, Calendar } from 'lucide-react';
 
-const Footer = ({ onOpenLeadModal }) => {
+const Footer = ({ onOpenLeadModal, onOpenBooking }) => {
   return (
     <footer className="border-t border-slate-800/80 bg-[#06080d] pt-16 pb-12 relative overflow-hidden">
       {/* Background Accent Gradients */}
@@ -25,13 +25,22 @@ const Footer = ({ onOpenLeadModal }) => {
               Let's build a modern, high-performance, scalable web application tailored to your goals.
             </p>
           </div>
-          <button
-            onClick={onOpenLeadModal}
-            className="px-8 py-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 transform hover:-translate-y-0.5 whitespace-nowrap flex items-center gap-2"
-          >
-            <span>Start Your Project</span>
-            <ArrowUpRight className="w-4 h-4" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+            <button
+              onClick={onOpenBooking}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm text-slate-300 border border-slate-700 hover:border-cyan-500/50 hover:text-cyan-400 hover:bg-cyan-500/5 transition-all duration-200 whitespace-nowrap"
+            >
+              <Calendar className="w-4 h-4" />
+              Book a Free Call
+            </button>
+            <button
+              onClick={onOpenLeadModal}
+              className="px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-cyan-500 to-violet-600 hover:from-cyan-400 hover:to-violet-500 shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 transition-all duration-300 transform hover:-translate-y-0.5 whitespace-nowrap flex items-center gap-2"
+            >
+              <span>Start Your Project</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Footer Navigation Grid */}
@@ -86,6 +95,7 @@ const Footer = ({ onOpenLeadModal }) => {
               <li><Link to="/" className="hover:text-cyan-400 transition-colors">Home</Link></li>
               <li><Link to="/services" className="hover:text-cyan-400 transition-colors">Services</Link></li>
               <li><Link to="/projects" className="hover:text-cyan-400 transition-colors">Portfolio & Work</Link></li>
+              <li><Link to="/estimator" className="hover:text-cyan-400 transition-colors">Cost Estimator</Link></li>
               <li><Link to="/about" className="hover:text-cyan-400 transition-colors">About & Experience</Link></li>
               <li><Link to="/contact" className="hover:text-cyan-400 transition-colors">Contact / Lead Form</Link></li>
             </ul>

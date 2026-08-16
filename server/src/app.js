@@ -8,6 +8,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const testimonialRoutes = require('./routes/testimonialRoutes');
 const faqRoutes = require('./routes/faqRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const { apiLimiter } = require('./middleware/rateLimiter');
@@ -50,6 +51,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Error Handling
 app.use(notFound);

@@ -1,6 +1,7 @@
 const Lead = require('../models/Lead');
 const { sendLeadNotificationEmails } = require('../services/emailService');
 const { validateLeadPayload } = require('../validators/leadValidator');
+const { qualifyLeadWithAI } = require('../services/aiQualificationService');
 
 // @desc    Submit a new client project idea / enquiry
 // @route   POST /api/leads
@@ -162,18 +163,30 @@ const updateLead = async (req, res, next) => {
   }
 };
 
-// @desc    Delete lead
-// @route   DELETE /api/leads/:id
+// @desc    Run AI Lead Qualification & Proposal Generator
+// @route   POST /api/leads/:id/ai-qualify
 // @access  Private (Admin)
-const deleteLead = async (req, res, next) => {
+const aiQualifyLead = async (req, res, next) => {
   try {
-    const lead = await Lead.findByIdAndDelete(req.params.id);
+    const lead = await Lead.findById(req.params.id);
     if (!lead) {
       return res.status(404).json({ success: false, message: 'Lead record not found' });
     }
+
+    const aiAnalysis = await qualifyLeadWithAI(lead);
+    
+    // Automatically update status to 'Qualified' if quality score >= 75 and status is 'New'
+    if (lead.status === 'New' && aiAnalysis.leadScore >= 75) {
+      lead.status = 'Qualified';
+    }
+
+    lead.aiAnalysis = aiAnalysis;
+    await lead.save();
+
     res.json({
       success: true,
-      message: 'Lead deleted successfully'
+      message: 'AI Lead Qualification & Proposal generated successfully',
+      data: lead
     });
   } catch (error) {
     next(error);
@@ -185,5 +198,7 @@ module.exports = {
   getLeads,
   getLeadById,
   updateLead,
-  deleteLead
+  deleteLead,
+  aiQualifyLead
 };
+

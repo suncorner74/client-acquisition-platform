@@ -73,6 +73,10 @@ const LeadSchema = new mongoose.Schema(
     ipAddress: {
       type: String,
       default: ''
+    },
+    aiAnalysis: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
     }
   },
   {

@@ -51,6 +51,10 @@ export const leadsApi = {
   deleteLead: async (id) => {
     const res = await api.delete(`/leads/${id}`);
     return res.data;
+  },
+  qualifyLeadWithAI: async (id) => {
+    const res = await api.post(`/leads/${id}/ai-qualify`);
+    return res.data;
   }
 };
 

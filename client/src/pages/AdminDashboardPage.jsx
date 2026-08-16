@@ -18,7 +18,12 @@ import {
   Save,
   X,
   PlusCircle,
-  FolderPlus
+  FolderPlus,
+  Zap,
+  Copy,
+  Check,
+  AlertTriangle,
+  HelpCircle
 } from 'lucide-react';
 import { leadsApi, projectsApi, statsApi, authApi } from '../services/api';
 
@@ -31,6 +36,11 @@ const AdminDashboardPage = () => {
   const [projects, setProjects] = useState([]);
   const [crmStats, setCrmStats] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // AI Qualification state
+  const [aiLoading, setAiLoading] = useState(false);
+  const [copiedProposal, setCopiedProposal] = useState(false);
+  const [proposalTab, setProposalTab] = useState('insights'); // 'insights' | 'proposal'
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,6 +117,28 @@ const AdminDashboardPage = () => {
   const handleOpenLeadModal = (lead) => {
     setSelectedLead(lead);
     setAdminNotesInput(lead.adminNotes || '');
+    setProposalTab('insights');
+  };
+
+  const handleQualifyWithAI = async (leadId) => {
+    setAiLoading(true);
+    try {
+      const res = await leadsApi.qualifyLeadWithAI(leadId);
+      if (res.success) {
+        setLeads(leads.map(l => l._id === leadId ? res.data : l));
+        setSelectedLead(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to qualify lead with AI:', err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleCopyProposal = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedProposal(true);
+    setTimeout(() => setCopiedProposal(false), 2000);
   };
 
   const handleSaveAdminNotes = async () => {
@@ -405,15 +437,25 @@ const AdminDashboardPage = () => {
         </div>
       )}
 
-      {/* LEAD DETAIL & NOTES DRAWER MODAL */}
+      {/* LEAD DETAIL & NOTES DRAWER MODAL WITH AI QUALIFIER */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-2xl bg-[#0f1420] border border-cyan-500/30 rounded-3xl p-6 sm:p-8 space-y-6 glass-panel">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <div className="relative w-full max-w-3xl bg-[#0f1420] border border-cyan-500/30 rounded-3xl p-6 sm:p-8 space-y-6 glass-panel my-6 max-h-[90vh] overflow-y-auto">
+            
+            {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-800 pb-4">
               <div>
-                <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold">
-                  {selectedLead.projectType}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold border border-cyan-500/20">
+                    {selectedLead.projectType}
+                  </span>
+                  {selectedLead.aiAnalysis && (
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20 flex items-center gap-1">
+                      <Zap className="w-3 h-3" />
+                      Score: {selectedLead.aiAnalysis.leadScore}/100
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-2xl font-bold text-white mt-2">{selectedLead.name}</h3>
                 <p className="text-xs text-slate-400">{selectedLead.email} • {selectedLead.phone || 'No Phone'} • {selectedLead.company || 'No Company'}</p>
               </div>
@@ -422,7 +464,8 @@ const AdminDashboardPage = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs">
+            {/* Quick Meta Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
               <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
                 <span className="text-slate-500 block">Target Budget:</span>
                 <span className="font-bold text-emerald-400 text-sm">{selectedLead.budget}</span>
@@ -431,15 +474,153 @@ const AdminDashboardPage = () => {
                 <span className="text-slate-500 block">Target Timeline:</span>
                 <span className="font-bold text-white text-sm">{selectedLead.timeline}</span>
               </div>
+              <div className="p-3 bg-slate-900 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
+                <span className="text-slate-500 block">Status:</span>
+                <span className="font-bold text-cyan-400 text-sm">{selectedLead.status}</span>
+              </div>
             </div>
 
+            {/* AI QUALIFICATION & PROPOSAL GENERATOR SECTION */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-cyan-500/30 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold text-white">AI Lead Qualifier & Proposal Engine</h4>
+                    <p className="text-[11px] text-slate-400">Automated quality scoring, tech stack fit, and instant project proposal generator</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleQualifyWithAI(selectedLead._id)}
+                  disabled={aiLoading}
+                  className="px-4 py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 flex items-center justify-center gap-1.5 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+                >
+                  <Zap className={`w-4 h-4 ${aiLoading ? 'animate-spin' : ''}`} />
+                  <span>{aiLoading ? 'Analyzing Intent...' : selectedLead.aiAnalysis ? 'Re-Run AI Analysis' : 'Run AI Qualifier'}</span>
+                </button>
+              </div>
+
+              {/* Render AI Analysis Results if Present */}
+              {selectedLead.aiAnalysis && (
+                <div className="space-y-4 pt-3 border-t border-slate-800">
+                  
+                  {/* Proposal Tabs */}
+                  <div className="flex items-center gap-2 border-b border-slate-800 pb-2 text-xs">
+                    <button
+                      onClick={() => setProposalTab('insights')}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                        proposalTab === 'insights' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      AI Insights & Risk Scoring
+                    </button>
+                    <button
+                      onClick={() => setProposalTab('proposal')}
+                      className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+                        proposalTab === 'proposal' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Generated Proposal Document
+                    </button>
+                  </div>
+
+                  {/* TAB 1: INSIGHTS & SCORE */}
+                  {proposalTab === 'insights' && (
+                    <div className="space-y-4 text-xs">
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                          <span className="text-slate-500 block">Quality Tier</span>
+                          <span className="font-bold text-emerald-400 text-xs">{selectedLead.aiAnalysis.qualityTier}</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                          <span className="text-slate-500 block">Estimated Hours</span>
+                          <span className="font-bold text-white text-xs">{selectedLead.aiAnalysis.estimatedScope?.hours}</span>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                          <span className="text-slate-500 block">Estimated Duration</span>
+                          <span className="font-bold text-cyan-400 text-xs">{selectedLead.aiAnalysis.estimatedScope?.duration}</span>
+                        </div>
+                      </div>
+
+                      {/* Tech Stack Pills */}
+                      <div>
+                        <span className="text-slate-400 font-semibold block mb-1.5 uppercase text-[10px]">Recommended Architecture Stack</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedLead.aiAnalysis.techStack?.map((tech, idx) => (
+                            <span key={idx} className="px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-300 font-mono text-[11px] border border-cyan-500/20">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Risks & Discovery Questions */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 space-y-1">
+                          <div className="flex items-center gap-1 text-red-400 font-bold">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>Risk & Scope Analysis</span>
+                          </div>
+                          <ul className="list-disc list-inside text-slate-300 space-y-1 text-[11px]">
+                            {selectedLead.aiAnalysis.riskAnalysis?.map((risk, idx) => (
+                              <li key={idx}>{risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-violet-500/5 border border-violet-500/20 space-y-1">
+                          <div className="flex items-center gap-1 text-violet-400 font-bold">
+                            <HelpCircle className="w-3.5 h-3.5" />
+                            <span>Discovery Call Questions</span>
+                          </div>
+                          <ul className="list-disc list-inside text-slate-300 space-y-1 text-[11px]">
+                            {selectedLead.aiAnalysis.discoveryQuestions?.map((q, idx) => (
+                              <li key={idx}>{q}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+
+                  {/* TAB 2: INSTANT GENERATED PROPOSAL */}
+                  {proposalTab === 'proposal' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-400 font-semibold">Client Proposal & Technical Quote Document</span>
+                        <button
+                          onClick={() => handleCopyProposal(selectedLead.aiAnalysis.generatedProposal)}
+                          className="px-3 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                        >
+                          {copiedProposal ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{copiedProposal ? 'Copied to Clipboard!' : 'Copy Proposal Text'}</span>
+                        </button>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 max-h-64 overflow-y-auto border border-slate-800 whitespace-pre-wrap leading-relaxed">
+                        {selectedLead.aiAnalysis.generatedProposal}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              )}
+            </div>
+
+            {/* Project Message */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Project Description Message</h4>
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Client Submitted Description Message</h4>
               <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-slate-200 text-xs leading-relaxed whitespace-pre-wrap">
                 {selectedLead.message}
               </div>
             </div>
 
+            {/* Internal Admin Notes */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">Internal Admin Notes</h4>
               <textarea
@@ -451,6 +632,7 @@ const AdminDashboardPage = () => {
               ></textarea>
             </div>
 
+            {/* Modal Bottom Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-slate-800">
               <button
                 onClick={() => handleDeleteLead(selectedLead._id)}
