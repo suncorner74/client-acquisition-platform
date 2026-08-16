@@ -163,6 +163,31 @@ const updateLead = async (req, res, next) => {
   }
 };
 
+// @desc    Delete a lead
+// @route   DELETE /api/leads/:id
+// @access  Private (Admin)
+const deleteLead = async (req, res, next) => {
+  try {
+    const lead = await Lead.findById(req.params.id);
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lead record not found'
+      });
+    }
+
+    await Lead.findByIdAndDelete(req.params.id);
+
+    return res.json({
+      success: true,
+      message: 'Lead deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Run AI Lead Qualification & Proposal Generator
 // @route   POST /api/leads/:id/ai-qualify
 // @access  Private (Admin)
@@ -201,4 +226,3 @@ module.exports = {
   deleteLead,
   aiQualifyLead
 };
-
