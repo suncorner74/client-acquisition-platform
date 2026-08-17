@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const testimonialRoutes = require('./routes/testimonialRoutes');
@@ -15,10 +16,8 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
-// Security HTTP headers
 app.use(helmet());
 
-// CORS setup
 app.use(
   cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -27,14 +26,10 @@ app.use(
   })
 );
 
-// Global Rate Limiting
 app.use('/api', apiLimiter);
-
-// Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Root health check endpoint
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -44,8 +39,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/testimonials', testimonialRoutes);
@@ -53,7 +48,6 @@ app.use('/api/faqs', faqRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/chat', chatRoutes);
 
-// Error Handling
 app.use(notFound);
 app.use(errorHandler);
 
