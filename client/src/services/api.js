@@ -32,6 +32,10 @@ export const authApi = {
   getMe: async () => {
     const res = await api.get('/auth/me');
     return res.data;
+  },
+  createAdmin: async (adminData) => {
+    const res = await api.post('/admin/admins', adminData);
+    return res.data;
   }
 };
 
